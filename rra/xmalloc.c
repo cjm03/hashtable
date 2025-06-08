@@ -90,8 +90,8 @@
 #include "config.h"
 #include "system.h"
 
-#include <util/messages.h>
-#include <util/xmalloc.h>
+#include "messages.h"
+#include "xmalloc.h"
 
 
 /*

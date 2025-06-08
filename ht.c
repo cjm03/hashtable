@@ -3,11 +3,12 @@
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
-#include "xmalloc.h"
 #include "prime.h"
+#include "prime.c"
 #include "ht.h"
 
-static ht_item* htNewItem(const char* k, const char* v)
+static ht_item*
+htNewItem(const char* k, const char* v)
 {
     // allocate a chunk of memory the size of ht_item
     ht_item* i = malloc(sizeof(ht_item));
@@ -20,42 +21,34 @@ static ht_item* htNewItem(const char* k, const char* v)
     return i;
 }
 
-ht_table* htNewTable(void)
+ht_table*
+htNewTable(void)
 {
     return htNewTableSized(HT_INIT_BASESIZE);
-    // // allocate a chunk of memory the size of ht_table
-    // ht_table* ht = malloc(sizeof(ht_table));
-    //
-    // // `size` defines how many items we can store, which is fixed at 53 for now.
-    // ht->size = 53;
-    //
-    // ht->count = 0;
-    //
-    // // the array of items is initialized using `calloc` to fill the allocated memory with NULL bytes.
-    // // this indicates to us that the bucket is empty.
-    // ht->items = calloc((size_t)ht->size, sizeof(ht_item*));
-    // return ht;
 }
 
-static ht_table* htNewTableSized(const int base_size)
+static
+ht_table* htNewTableSized(const int base_size)
 {
-    ht_table* ht = xmalloc(sizeof(ht_table));
+    ht_table* ht = malloc(sizeof(ht_table));
     ht->base_size = base_size;
     ht->size = nextPrime(ht->base_size);
     ht->count = 0;
-    ht->items = xcalloc((size_t)ht->size, sizeof(ht_item*));
+    ht->items = calloc((size_t)ht->size, sizeof(ht_item*));
     return ht;
 }
 
 // function for deleting a ht_item
-static void htDelItem(ht_item* i)
+static void
+htDelItem(ht_item* i)
 {
     free(i->key);
     free(i->value);
     free(i);
 }
 
-void htDelTable(ht_table* ht)
+void
+htDelTable(ht_table* ht)
 {
     // for every item stored in ht
     for (int i = 0; i < ht->size; i++) {
@@ -74,7 +67,8 @@ void htDelTable(ht_table* ht)
     free(ht);
 }
 
-static int htHash(const char* s, const int a, const int m)
+static int
+htHash(const char* s, const int a, const int m)
 {
     // initialize long type variable hash with 0
     long hash = 0;
@@ -93,7 +87,8 @@ static int htHash(const char* s, const int a, const int m)
     return (int)hash;
 }
 
-static int htGetHash(const char* s, const int num_buckets, const int attempt)
+static int
+htGetHash(const char* s, const int num_buckets, const int attempt)
 {
     // assign hashA the result of the hash function using string `s` and prime number `HT_PRIME1`
     const int hashA = htHash(s, HT_PRIME1, num_buckets);
@@ -106,7 +101,8 @@ static int htGetHash(const char* s, const int num_buckets, const int attempt)
     return (hashA + (attempt * (hashB + 1))) % num_buckets;
 }
 
-void htInsert(ht_table* ht, const char* key, const char* value)
+void
+htInsert(ht_table* ht, const char* key, const char* value)
 {
     const int load = ht->count * 100 / ht->size;
     if (load > 70) htResizeUp(ht);
@@ -154,7 +150,8 @@ void htInsert(ht_table* ht, const char* key, const char* value)
     ht->count++;
 }
 
-char* htSearch(ht_table* ht, const char* key)
+char*
+htSearch(ht_table* ht, const char* key)
 {
     // initialize and assign index with result of htGetHash called with the key, ht size, and 0 attempts
     int index = htGetHash(key, ht->size, 0);
@@ -190,7 +187,8 @@ char* htSearch(ht_table* ht, const char* key)
 }
 
 // declare ht_item variable `HT_DELETED_ITEM` and assign its key/value pair as both NULL
-void htDelete(ht_table* ht, const char* key)
+void
+htDelete(ht_table* ht, const char* key)
 {
     const int load = ht->count * 100 / ht->size;
     if (load < 10) htResizeDown(ht);
@@ -225,7 +223,8 @@ void htDelete(ht_table* ht, const char* key)
     ht->count--;
 }
 
-static void htResize(ht_table* ht, const int base_size)
+static void
+htResize(ht_table* ht, const int base_size)
 {
     if (base_size < HT_INIT_BASESIZE) {
         return;
@@ -249,27 +248,29 @@ static void htResize(ht_table* ht, const int base_size)
     htDelTable(new_ht);
 }
 
-static void htResizeUp(ht_table* ht)
+static void
+htResizeUp(ht_table* ht)
 {
     const int newsize = ht->base_size * 2;
     htResize(ht, newsize);
 }
 
-static void htResizeDown(ht_table* ht)
+static void
+htResizeDown(ht_table* ht)
 {
     const int newsize = ht->base_size / 2;
     htResize(ht, newsize);
 }
 
-
-
 // + --------------------------------------------------------------------------------------------------------+
-// |                                                                                                         |
+// |            main                                                                                         |
 // + --------------------------------------------------------------------------------------------------------+
 
 int main(void)
 {
     ht_table* ht = htNewTable();
-    htDelTable(ht);
+    htInsert(ht, "crab", "25364102");
+    char* searchFor = htSearch(ht, "crab");
+    printf("%s\n", searchFor);
 }
 
