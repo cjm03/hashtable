@@ -101,6 +101,17 @@ htHash(const char* s, const int a, const int m)
     return (int)hash;
 }
 
+unsigned long
+htSdbm(const char* s)
+{
+    unsigned long hash = 0;
+    int c;
+    while ((c = *s++)) {
+        hash = c + (hash << 6) + (hash << 16) - hash;
+    }
+    return hash;
+}
+
 static int
 htGetHash(const char* s, const int num_buckets, const int attempt)
 {
