@@ -1,8 +1,10 @@
 // ht.h
 #ifndef HT_H
 #define HT_H
-
 #include <stdio.h>
+
+
+/**********************************************************************************************/
 
 
 /**************/
@@ -13,19 +15,25 @@
 #define HT_INIT_BASESIZE 50
 
 
+/**********************************************************************************************/
+
+
 /******************/
 /*** STRUCTURES ***/
 /******************/
 typedef struct {
-    char* key;
-    char* value;
+    char* key;          // identifier
+    char* value;        // value obtained via identifier
 } ht_item;
 typedef struct {
-    int base_size;
-    int size;
-    int count;
-    ht_item** items;
+    int base_size;      // initial size at declaration
+    int size;           // maximum amount of items that can be stored
+    int count;          // number of items stored in the table
+    ht_item** items;    // array of pointers to ht_item 's
 } ht_table;
+
+
+/**********************************************************************************************/
 
 
 /******************/
@@ -46,10 +54,16 @@ static void htResizeUp(ht_table* ht);
 static void htResizeDown(ht_table* ht);
 
 
+/**********************************************************************************************/
+
+
 /********************************/
 /*** DELETED ITEM DECLARATION ***/
 /********************************/
 static ht_item HT_DELETED_ITEM = {NULL, NULL};
+
+
+/**********************************************************************************************/
 
 
 #endif

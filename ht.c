@@ -24,24 +24,38 @@ htNewItem(const char* k, const char* v)
 ht_table*
 htNewTable(void)
 {
+
+    // deprecated, resorts to htNewTableSized()
     return htNewTableSized(HT_INIT_BASESIZE);
 }
 
 static
 ht_table* htNewTableSized(const int base_size)
 {
+    // allocate a chunk of memory the size of ht_table and assign it to pointer `ht`
     ht_table* ht = malloc(sizeof(ht_table));
+
+    // assign the new table's base_size element with the value passed in the func call
     ht->base_size = base_size;
+
+    // assign element size with the next prime number after base_size
     ht->size = nextPrime(ht->base_size);
+
+    // assign count to 0
     ht->count = 0;
+
+    // allocate ht->size memory objects and initialize them all to NULL for the items array
     ht->items = calloc((size_t)ht->size, sizeof(ht_item*));
+
+    // return the new table
     return ht;
 }
 
-// function for deleting a ht_item
 static void
 htDelItem(ht_item* i)
 {
+    // given a pointer to a ht_item, free the memory allocated for both the key and the value,
+    // and then deallocate the ht_item itself
     free(i->key);
     free(i->value);
     free(i);
@@ -104,9 +118,14 @@ htGetHash(const char* s, const int num_buckets, const int attempt)
 void
 htInsert(ht_table* ht, const char* key, const char* value)
 {
+
+        // calculate load on table, upscale to avoid floats
     const int load = ht->count * 100 / ht->size;
+
+        // if load has surpassed 0.7, resize up (make new larger table)
     if (load > 70) htResizeUp(ht);
-    // create a new item by passing key and value to htNewItem(), assign it to item
+
+        // create a new ht_item by passing key and value to htNewItem(), assign it to item
     ht_item* item = htNewItem(key, value);
 
     // initialize index with result of htGetHash() called with the new item's key, the current size
@@ -190,8 +209,13 @@ htSearch(ht_table* ht, const char* key)
 void
 htDelete(ht_table* ht, const char* key)
 {
+
+    // calculate load on table, upscale to avoid floats
     const int load = ht->count * 100 / ht->size;
+
+    // if load is below 0.1, resize down
     if (load < 10) htResizeDown(ht);
+
     // init index and assign result of htGetHash passed with the key, ht size, and 0 attempts
     int index = htGetHash(key, ht->size, 0);
 
@@ -226,31 +250,49 @@ htDelete(ht_table* ht, const char* key)
 static void
 htResize(ht_table* ht, const int base_size)
 {
+
+    // prevent tables from getting too small (sec vuln. potentially)
     if (base_size < HT_INIT_BASESIZE) {
         return;
     }
+
+    // create new ht_table structure `new_ht` with the size passed in the function call
     ht_table* new_ht = htNewTableSized(base_size);
+
+    // while indexing variable is less than size element
     for (int i = 0; i < ht->size; i++) {
+
+        // temporarily assign item with the ht_table 's item stored at current index
         ht_item* item = ht->items[i];
+
+        // if the item holds data and wasn't recently deleted, it may be copied over to the new table
         if (item != NULL && item != &HT_DELETED_ITEM) {
             htInsert(new_ht, item->key, item->value);
         }
     }
+
+    // raise the table's base_size to match that of the temp table's, likewise for the count
     ht->base_size = new_ht->base_size;
     ht->count = new_ht->count;
+
+    /* swap sequence to increase the size of ht to match the size of new_ht */
     const int tmpsize = ht->size;
     ht->size = new_ht->size;
     new_ht->size = tmpsize;
+
+    /* declare temp array of ptrs to store items for swap sequence */
     ht_item** tmpitems = ht->items;
     ht->items = new_ht->items;
     new_ht->items = tmpitems;
 
+    // delete the temp table
     htDelTable(new_ht);
 }
 
 static void
 htResizeUp(ht_table* ht)
 {
+    // utilize htResize() to double the size of the table so as to not overload it
     const int newsize = ht->base_size * 2;
     htResize(ht, newsize);
 }
@@ -258,6 +300,7 @@ htResizeUp(ht_table* ht)
 static void
 htResizeDown(ht_table* ht)
 {
+    // utilize htResize() to half the size of the table so as to not waste memory
     const int newsize = ht->base_size / 2;
     htResize(ht, newsize);
 }
@@ -268,9 +311,16 @@ htResizeDown(ht_table* ht)
 
 int main(void)
 {
+    // create a hash table, store it in `ht`
     ht_table* ht = htNewTable();
+
+    // create and insert a ht_item key/value pair into `ht`
     htInsert(ht, "crab", "25364102");
+
+    // attempt to obtain the key's value via htSearch(), store value as a string to be referenced by a char ptr
     char* searchFor = htSearch(ht, "crab");
+
+    // display the value
     printf("%s\n", searchFor);
 }
 
